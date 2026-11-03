@@ -14,6 +14,11 @@ const JWKS = createRemoteJWKSet(
 
 const verifyToken = async (req, res, next) => {
     try {
+
+console.log("Authorization header:", !!req.headers.authorization);
+console.log("Bearer token exists:", req.headers.authorization?.startsWith("Bearer "));
+
+
         // Read token from Authorization header
         const authHeader = req.headers.authorization;
 
