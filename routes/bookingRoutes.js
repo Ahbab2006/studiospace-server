@@ -10,6 +10,7 @@ const {
 } = require("../controllers/bookingController");
 
 const verifyToken = require("../middleware/verifyToken");
+router.post("/", verifyToken, createBooking);
 // const verifyAdmin = require("../middleware/verifyAdmin");
 const verifyPermission = require("../middleware/verifyPermission");
 

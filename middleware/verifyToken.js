@@ -2,19 +2,24 @@ const { jwtVerify, createRemoteJWKSet } = require("jose");
 const { getDB } = require("../config/db");
 const { ObjectId } = require("mongodb");
 
+const AUTH_URL = process.env.BETTER_AUTH_URL;
+
+if (!AUTH_URL) {
+    throw new Error("BETTER_AUTH_URL is not configured");
+}
+
 const JWKS = createRemoteJWKSet(
-    new URL("http://localhost:3000/api/auth/jwks")
+    new URL(`${AUTH_URL}/api/auth/jwks`)
 );
 
 const verifyToken = async (req, res, next) => {
     try {
+        // Read token from Authorization header
+        const authHeader = req.headers.authorization;
 
-console.log("Cookies received:", Object.keys(req.cookies || {}));
-console.log("Studio token exists:", !!req.cookies?.studio_access_token);
-
-
-        // Read JWT from HTTPOnly cookie
-        const token = req.cookies?.studio_access_token;
+        const token = authHeader?.startsWith("Bearer ")
+            ? authHeader.split(" ")[1]
+            : req.cookies?.studio_access_token;
 
         if (!token) {
             return res.status(401).json({
@@ -24,8 +29,8 @@ console.log("Studio token exists:", !!req.cookies?.studio_access_token);
         }
 
         const { payload } = await jwtVerify(token, JWKS, {
-            issuer: "http://localhost:3000",
-            audience: "http://localhost:3000",
+            issuer: AUTH_URL,
+            audience: AUTH_URL,
         });
 
         if (!payload.sub) {
@@ -59,7 +64,7 @@ console.log("Studio token exists:", !!req.cookies?.studio_access_token);
         }
 
         req.user = {
-            id: user._id.toString(),
+            id: user._id?.toString() || user.id,
             email: user.email,
             name: user.name,
             role: user.role || "user",
