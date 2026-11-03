@@ -79,7 +79,11 @@ console.log("Bearer token exists:", req.headers.authorization?.startsWith("Beare
         next();
 
     } catch (error) {
-        console.error("JWT verification failed:", error.message);
+    console.error("JWT verification failed:", {
+    name: error.name,
+    code: error.code,
+    message: error.message,
+});
 
         return res.status(401).json({
             success: false,
