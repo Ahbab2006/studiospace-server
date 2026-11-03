@@ -16,8 +16,8 @@ const JWKS = createRemoteJWKSet(
 const verifyToken = async (req, res, next) => {
     try {
 
-console.log("Authorization header:", !!req.headers.authorization);
-console.log("Bearer token exists:", req.headers.authorization?.startsWith("Bearer "));
+        console.log("Authorization header:", !!req.headers.authorization);
+        console.log("Bearer token exists:", req.headers.authorization?.startsWith("Bearer "));
 
 
         // Read token from Authorization header
@@ -34,15 +34,15 @@ console.log("Bearer token exists:", req.headers.authorization?.startsWith("Beare
             });
         }
 
-       const decoded = decodeJwt(token);
+        const decoded = decodeJwt(token);
 
-console.log("JWT issuer:", decoded.iss);
-console.log("JWT audience:", decoded.aud);
-console.log("Expected AUTH_URL:", AUTH_URL);
+        console.log("JWT issuer:", decoded.iss);
+        console.log("JWT audience:", decoded.aud);
+        console.log("Expected AUTH_URL:", AUTH_URL);
 
-const { payload } = await jwtVerify(token, JWKS, {
-    audience: AUTH_URL,
-});
+        const { payload } = await jwtVerify(token, JWKS, {
+            audience: AUTH_URL,
+        });
 
         if (!payload.sub) {
             return res.status(401).json({
@@ -84,18 +84,18 @@ const { payload } = await jwtVerify(token, JWKS, {
 
         next();
 
-   } catch (error) {
-    console.error("JWT verification failed:", {
-        name: error.name,
-        code: error.code,
-        message: error.message,
-    });
+    } catch (error) {
+        console.error("JWT verification failed:", {
+            name: error.name,
+            code: error.code,
+            message: error.message,
+        });
 
-    return res.status(401).json({
-        success: false,
-        message: "Unauthorized: Invalid or expired token",
-    });
-}
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized: Invalid or expired token",
+        });
+    }
 };
 
 module.exports = verifyToken;
