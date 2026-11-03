@@ -1,6 +1,7 @@
 const { jwtVerify, createRemoteJWKSet } = require("jose");
 const { getDB } = require("../config/db");
 const { ObjectId } = require("mongodb");
+const { decodeJwt } = require("jose");
 
 const AUTH_URL = process.env.BETTER_AUTH_URL;
 
@@ -33,10 +34,15 @@ console.log("Bearer token exists:", req.headers.authorization?.startsWith("Beare
             });
         }
 
-        const { payload } = await jwtVerify(token, JWKS, {
-            issuer: AUTH_URL,
-            audience: AUTH_URL,
-        });
+       const decoded = decodeJwt(token);
+
+console.log("JWT issuer:", decoded.iss);
+console.log("JWT audience:", decoded.aud);
+console.log("Expected AUTH_URL:", AUTH_URL);
+
+const { payload } = await jwtVerify(token, JWKS, {
+    audience: AUTH_URL,
+});
 
         if (!payload.sub) {
             return res.status(401).json({
