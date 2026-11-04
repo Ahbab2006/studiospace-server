@@ -55,9 +55,6 @@ const getFeaturedStudios = async (req, res) => {
         });
     }
 };
-
-
-// Add a new studio
 // Add a new studio
 const addStudio = async (req, res) => {
     try {
