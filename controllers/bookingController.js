@@ -121,12 +121,11 @@ if (parsedDate < today) {
       });
     }
 
-    // 7. Check overlapping pending or confirmed bookings
- // 7. Check overlapping confirmed bookings only
+// 7. Check overlapping pending or confirmed bookings
 const existingBooking = await db.collection("bookings").findOne({
   studioId: new ObjectId(studioId),
   bookingDate,
-  status: "confirmed",
+  status: { $in: ["pending", "confirmed"] },
   startTime: { $lt: endTime },
   endTime: { $gt: startTime },
 });
@@ -342,12 +341,24 @@ const updateBookingStatus = async (req, res) => {
             cancelled: [],
         };
 
-        if (!allowedTransitions[booking.status]?.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                message: `Cannot change booking status from ${booking.status} to ${status}.`,
-            });
-        }
+      // Check overlapping bookings before confirming
+if (status === "confirmed") {
+    const existingBooking = await bookingsCollection.findOne({
+        _id: { $ne: new ObjectId(bookingId) },
+        studioId: booking.studioId,
+        bookingDate: booking.bookingDate,
+        status: { $in: ["pending", "confirmed"] },
+        startTime: { $lt: booking.endTime },
+        endTime: { $gt: booking.startTime },
+    });
+
+    if (existingBooking) {
+        return res.status(409).json({
+            success: false,
+            message: "Another booking already exists for this time slot.",
+        });
+    }
+}
 
         const result = await bookingsCollection.updateOne(
             { _id: new ObjectId(bookingId), status: booking.status },
